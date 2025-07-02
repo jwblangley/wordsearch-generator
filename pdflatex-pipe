@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -e
+
+temp_dir=$(mktemp --directory -t pdflatex-pipe-XXXXXXXX)
+
+cd "$temp_dir"
+
+# Write to main.tex
+cat >main.tex
+
+pdflatex main.tex 1>&2
+
+realpath main.pdf 1>&2
+cat main.pdf
