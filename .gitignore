@@ -1,0 +1,13 @@
+# Python
+venv
+*.pyc
+__pycache__
+
+# Latex
+*.tex
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.pdf
+*.synctex.gz
