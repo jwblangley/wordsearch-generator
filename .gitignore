@@ -11,3 +11,6 @@ __pycache__
 *.log
 *.pdf
 *.synctex.gz
+
+# Inputs
+*.txt
