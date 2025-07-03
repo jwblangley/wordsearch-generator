@@ -3,14 +3,24 @@ import random
 
 from typing import Callable
 
+letter_frequencies = {
+    'a': 0.08167, 'b': 0.01492, 'c': 0.02782, 'd': 0.04253, 'e': 0.12702,
+    'f': 0.02228, 'g': 0.02015, 'h': 0.06094, 'i': 0.06966, 'j': 0.00153,
+    'k': 0.00772, 'l': 0.04025, 'm': 0.02406, 'n': 0.06749, 'o': 0.07507,
+    'p': 0.01929, 'q': 0.00095, 'r': 0.05987, 's': 0.06327, 't': 0.09056,
+    'u': 0.02758, 'v': 0.00978, 'w': 0.02360, 'x': 0.00150, 'y': 0.01974,
+    'z': 0.00074
+}
 
-def grid_to_tex(grid: list[list[str]], included_words: list[str]) -> str:
+
+def grid_to_tex(grid: list[list[str]], answer_key: list[list[str]], included_words: list[str]) -> str:
     return (
         r"""
 \documentclass[12pt]{article}
 
 \usepackage[a4paper, margin=2cm]{geometry}
 \usepackage{array}
+\usepackage[table]{xcolor}
 
 \renewcommand{\familydefault}{\sfdefault}
 
@@ -23,7 +33,22 @@ def grid_to_tex(grid: list[list[str]], included_words: list[str]) -> str:
         + r""" |}
     \hline
 """
-        + "\n".join(("    " + " & ".join(l) + " \\\\\n") for l in grid)
+        + "\n".join(("    " + " & ".join(ls) + " \\\\\n") for ls in grid)
+        + r"""
+    \hline
+\end{tabular}
+\end{center}
+
+\pagebreak
+
+\noindent
+\begin{center}
+\begin{tabular}{| """
+        + r"p{1em}" * len(grid[0])
+        + r""" |}
+    \hline
+"""
+        + "\n".join(("    " + " & ".join(((r"\cellcolor{yellow!50}" if answer_key[y][x] != " " else "") + l) for x,l in enumerate(ls)) + " \\\\\n") for y, ls in enumerate(grid))
         + r"""
     \hline
 \end{tabular}
@@ -33,7 +58,7 @@ def grid_to_tex(grid: list[list[str]], included_words: list[str]) -> str:
 """
     )
 
-def generate_grid(width: int, height: int, wordlist: list[str], target_fill_rate:float=0.4, give_up_rate:float=0.01) -> list[list[str]]:
+def generate_grid(width: int, height: int, wordlist: list[str], target_fill_rate:float=0.4, give_up_rate:float=0.001) -> tuple[list[list[str]], list[list[str]], list[str]]:
     grid = [[" " for _ in range(width)] for _ in range(height)]
     max_word_len = max(width, height)
 
@@ -48,6 +73,9 @@ def generate_grid(width: int, height: int, wordlist: list[str], target_fill_rate
     # Start at 1 to keep maths valid: skew is negligble for large numbers
     attempts = 1
     successes = 1
+
+    successful_words = list()
+
     word_iter = iter(w for w in wordlist if random.random() < heuristic_rate)
 
     word_to_fit = next(word_iter, None)
@@ -100,14 +128,17 @@ def generate_grid(width: int, height: int, wordlist: list[str], target_fill_rate
                 x += direction_x
                 y += direction_y
             successes += 1
+            successful_words.append(word_to_fit)
             word_to_fit = next(word_iter, None)
+
+    answer_key = [[grid[y][x] for x in range(width)] for y in range(height)]
 
     for y in range(height):
         for x in range(width):
             if grid[y][x] == " ":
-                grid[y][x] = random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+                grid[y][x] = random.choices(list(k.upper() for k in letter_frequencies.keys()), letter_frequencies.values())[0]
 
-    return grid
+    return grid, answer_key, successful_words
 
 def _arg_int_range(low: int, high: int) -> Callable[[int], int]:
     def _range(x):
@@ -129,6 +160,4 @@ if __name__ == "__main__":
 
     wordlist = [w.strip().upper() for w in args.wordlist.readlines()]
 
-    grid = generate_grid(args.width, args.height, wordlist)
-
-    print(grid_to_tex(grid))
+    print(grid_to_tex(*generate_grid(args.width, args.height, wordlist)))
