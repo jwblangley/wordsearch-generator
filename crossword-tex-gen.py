@@ -21,6 +21,7 @@ def grid_to_tex(grid: list[list[str]], answer_key: list[list[str]], included_wor
 \usepackage[a4paper, margin=2cm]{geometry}
 \usepackage{array}
 \usepackage[table]{xcolor}
+\usepackage{multicol}
 
 \renewcommand{\familydefault}{\sfdefault}
 
@@ -38,6 +39,15 @@ def grid_to_tex(grid: list[list[str]], answer_key: list[list[str]], included_wor
     \hline
 \end{tabular}
 \end{center}
+
+\vspace{2cm}
+
+\begin{multicols}{3}
+    \noindent
+"""
++ "\n".join(f"    {w}\\\\" for w in included_words) +
+r"""
+\end{multicols}
 
 \pagebreak
 
