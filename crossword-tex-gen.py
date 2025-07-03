@@ -23,6 +23,8 @@ def grid_to_tex(grid: list[list[str]], answer_key: list[list[str]], included_wor
 \usepackage[table]{xcolor}
 \usepackage{multicol}
 
+\pagenumbering{gobble}
+
 \renewcommand{\familydefault}{\sfdefault}
 
 \begin{document}
@@ -45,7 +47,7 @@ def grid_to_tex(grid: list[list[str]], answer_key: list[list[str]], included_wor
 \begin{multicols}{3}
     \noindent
 """
-+ "\n".join(f"    {w}\\\\" for w in included_words) +
++ "\n".join(f"    {w}\\\\" for w in sorted(included_words)) +
 r"""
 \end{multicols}
 
@@ -68,7 +70,7 @@ r"""
 """
     )
 
-def generate_grid(width: int, height: int, wordlist: list[str], target_fill_rate:float=0.4, give_up_rate:float=0.001) -> tuple[list[list[str]], list[list[str]], list[str]]:
+def generate_grid(width: int, height: int, wordlist: list[str], target_fill_rate:float=0.4, give_up_rate:float=0.0001) -> tuple[list[list[str]], list[list[str]], list[str]]:
     grid = [[" " for _ in range(width)] for _ in range(height)]
     max_word_len = max(width, height)
 
@@ -89,8 +91,10 @@ def generate_grid(width: int, height: int, wordlist: list[str], target_fill_rate
     word_iter = iter(w for w in wordlist if random.random() < heuristic_rate)
 
     word_to_fit = next(word_iter, None)
+    if word_to_fit is None:
+        word_to_fit = wordlist[0]
 
-    while successes / attempts > give_up_rate and word_to_fit is not None:
+    while successes <= 1 or (successes / attempts > give_up_rate and word_to_fit is not None):
         attempts += 1
 
         direction_x = random.choice([-1, 0, 1])
@@ -168,6 +172,7 @@ if __name__ == "__main__":
     parser.add_argument('wordlist', type=argparse.FileType('rt'))
     args = parser.parse_args()
 
-    wordlist = [w.strip().upper() for w in args.wordlist.readlines()]
+    wordlist = [''.join(ch for ch in w.strip().upper() if ch.isalpha()) for w in args.wordlist.readlines()]
+    wordlist = [w for w in wordlist if w != ""]
 
     print(grid_to_tex(*generate_grid(args.width, args.height, wordlist)))
