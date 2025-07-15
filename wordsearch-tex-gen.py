@@ -27,11 +27,10 @@ letter_frequencies = {
     "u": 0.02758,
     "v": 0.00978,
     "w": 0.02360,
-    "x": 0.00150,
+    "x": 0.00151,
     "y": 0.01974,
     "z": 0.00074,
 }
-
 
 def grid_to_tex(
     grid: list[list[str]], answer_key: list[list[str]], included_words: list[str]
@@ -92,7 +91,7 @@ def grid_to_tex(
                 + " & ".join(
                     (
                         (
-                            f"\colorbox{{yellow!50}}{{{l}}} "
+                            f"\\colorbox{{yellow!50}}{{{l}}} "
                             if answer_key[y][x] != " "
                             else l
                         )
