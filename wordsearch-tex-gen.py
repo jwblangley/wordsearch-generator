@@ -40,7 +40,7 @@ def grid_to_tex(
         r"""
 \documentclass[12pt]{article}
 
-\usepackage[a4paper, margin=2cm]{geometry}
+\usepackage[a4paper, margin=1cm]{geometry}
 \usepackage[table]{xcolor}
 \usepackage{multicol}
 \usepackage{easytable}
@@ -68,9 +68,9 @@ def grid_to_tex(
     \end{TAB}
 \end{center}
 
-\vspace{2cm}
+\vspace{1cm}
 
-\begin{multicols}{3}
+\begin{multicols}{4}
     \noindent
 """
         + "\n".join(f"    {w}\\\\" for w in sorted(included_words))
@@ -227,8 +227,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="crossword-tex-gen", description="Generate Latex Wordsearches"
     )
-    parser.add_argument("--width", type=_arg_int_range(1, 21))
-    parser.add_argument("--height", type=_arg_int_range(1, 31))
+    parser.add_argument("--width", type=_arg_int_range(1, 26))
+    parser.add_argument("--height", type=_arg_int_range(1, 26))
     parser.add_argument("wordlist", type=argparse.FileType("rt"))
     args = parser.parse_args()
 
