@@ -23,8 +23,7 @@ Python script to generate LaTex Wordsearches
         * `geometry`
         * `xcolor`
         * `multicol`
-        * `easytable`
-        * `xcolor`
+        * `array`
 
 ## Running
 

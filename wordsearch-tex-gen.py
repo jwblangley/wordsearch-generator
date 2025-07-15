@@ -32,6 +32,7 @@ letter_frequencies = {
     "z": 0.00074,
 }
 
+
 def grid_to_tex(
     grid: list[list[str]], answer_key: list[list[str]], included_words: list[str]
 ) -> str:
@@ -42,8 +43,7 @@ def grid_to_tex(
 \usepackage[a4paper, margin=1cm]{geometry}
 \usepackage[table]{xcolor}
 \usepackage{multicol}
-\usepackage{easytable}
-\usepackage{xcolor}
+\usepackage{array}
 
 \pagenumbering{gobble}
 
@@ -52,19 +52,24 @@ def grid_to_tex(
 \newlength{\cellsize}
 \setlength{\cellsize}{0.75cm}
 
+\newcommand{\cellformat}[1]{\rule{0pt}{\cellsize}\parbox[c][\cellsize][c]{\cellsize}{\vspace{-1em}\centering#1}}
+
 \begin{document}
 
 \noindent
 \begin{center}
-    \begin{TAB}(e,\cellsize,\cellsize){|"""
-        + r"c" * len(grid[0])
-        + r"|}"
-        + r"{|"
-        + r"c" * len(grid)
-        + "|}\n"
-        + "\n".join(("    " + " & ".join(ls) + " \\\\") for ls in grid)
+    \begin{tabular}{|"""
+        + r"m{\cellsize}" * len(grid[0])
+        + r"""|}
+        \hline
+"""
+        + "\n".join(
+            ("        " + " & ".join([f"\\cellformat{{{l}}}" for l in ls]) + " \\\\")
+            for ls in grid
+        )
         + r"""
-    \end{TAB}
+        \hline
+    \end{tabular}
 \end{center}
 
 \vspace{1cm}
@@ -79,21 +84,20 @@ def grid_to_tex(
 \pagebreak
 
 \begin{center}
-    \begin{TAB}(e,\cellsize,\cellsize){|"""
-        + r"c" * len(grid[0])
-        + r"|}"
-        + r"{|"
-        + r"c" * len(grid)
-        + "|}\n"
+    \begin{tabular}{|"""
+        + r"m{\cellsize}" * len(grid[0])
+        + r"""|}
+        \hline
+"""
         + "\n".join(
             (
-                "    "
+                "        "
                 + " & ".join(
                     (
                         (
-                            f"\\colorbox{{yellow!50}}{{{l}}} "
+                            f"\\cellformat{{\\cellcolor{{yellow!50}}{l}}}"
                             if answer_key[y][x] != " "
-                            else l
+                            else f"\\cellformat{{{l}}}"
                         )
                     )
                     for x, l in enumerate(ls)
@@ -103,7 +107,8 @@ def grid_to_tex(
             for y, ls in enumerate(grid)
         )
         + r"""
-    \end{TAB}
+        \hline
+    \end{tabular}
 \end{center}
 
 \end{document}
