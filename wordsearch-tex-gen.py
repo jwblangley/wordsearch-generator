@@ -4,42 +4,68 @@ import random
 from typing import Callable
 
 letter_frequencies = {
-    'a': 0.08167, 'b': 0.01492, 'c': 0.02782, 'd': 0.04253, 'e': 0.12702,
-    'f': 0.02228, 'g': 0.02015, 'h': 0.06094, 'i': 0.06966, 'j': 0.00153,
-    'k': 0.00772, 'l': 0.04025, 'm': 0.02406, 'n': 0.06749, 'o': 0.07507,
-    'p': 0.01929, 'q': 0.00095, 'r': 0.05987, 's': 0.06327, 't': 0.09056,
-    'u': 0.02758, 'v': 0.00978, 'w': 0.02360, 'x': 0.00150, 'y': 0.01974,
-    'z': 0.00074
+    "a": 0.08167,
+    "b": 0.01492,
+    "c": 0.02782,
+    "d": 0.04253,
+    "e": 0.12702,
+    "f": 0.02228,
+    "g": 0.02015,
+    "h": 0.06094,
+    "i": 0.06966,
+    "j": 0.00153,
+    "k": 0.00772,
+    "l": 0.04025,
+    "m": 0.02406,
+    "n": 0.06749,
+    "o": 0.07507,
+    "p": 0.01929,
+    "q": 0.00095,
+    "r": 0.05987,
+    "s": 0.06327,
+    "t": 0.09056,
+    "u": 0.02758,
+    "v": 0.00978,
+    "w": 0.02360,
+    "x": 0.00150,
+    "y": 0.01974,
+    "z": 0.00074,
 }
 
 
-def grid_to_tex(grid: list[list[str]], answer_key: list[list[str]], included_words: list[str]) -> str:
+def grid_to_tex(
+    grid: list[list[str]], answer_key: list[list[str]], included_words: list[str]
+) -> str:
     return (
         r"""
 \documentclass[12pt]{article}
 
 \usepackage[a4paper, margin=2cm]{geometry}
-\usepackage{array}
 \usepackage[table]{xcolor}
 \usepackage{multicol}
+\usepackage{easytable}
+\usepackage{xcolor}
 
 \pagenumbering{gobble}
 
 \renewcommand{\familydefault}{\sfdefault}
 
+\newlength{\cellsize}
+\setlength{\cellsize}{0.75cm}
+
 \begin{document}
 
 \noindent
 \begin{center}
-\begin{tabular}{| """
-        + r"p{1em}" * len(grid[0])
-        + r""" |}
-    \hline
-"""
-        + "\n".join(("    " + " & ".join(ls) + " \\\\\n") for ls in grid)
+    \begin{TAB}(e,\cellsize,\cellsize){|"""
+        + r"c" * len(grid[0])
+        + r"|}"
+        + r"{|"
+        + r"c" * len(grid)
+        + "|}\n"
+        + "\n".join(("    " + " & ".join(ls) + " \\\\") for ls in grid)
         + r"""
-    \hline
-\end{tabular}
+    \end{TAB}
 \end{center}
 
 \vspace{2cm}
@@ -47,35 +73,63 @@ def grid_to_tex(grid: list[list[str]], answer_key: list[list[str]], included_wor
 \begin{multicols}{3}
     \noindent
 """
-+ "\n".join(f"    {w}\\\\" for w in sorted(included_words)) +
-r"""
+        + "\n".join(f"    {w}\\\\" for w in sorted(included_words))
+        + r"""
 \end{multicols}
 
 \pagebreak
 
-\noindent
 \begin{center}
-\begin{tabular}{| """
-        + r"p{1em}" * len(grid[0])
-        + r""" |}
-    \hline
-"""
-        + "\n".join(("    " + " & ".join(((r"\cellcolor{yellow!50}" if answer_key[y][x] != " " else "") + l) for x,l in enumerate(ls)) + " \\\\\n") for y, ls in enumerate(grid))
+    \begin{TAB}(e,\cellsize,\cellsize){|"""
+        + r"c" * len(grid[0])
+        + r"|}"
+        + r"{|"
+        + r"c" * len(grid)
+        + "|}\n"
+        + "\n".join(
+            (
+                "    "
+                + " & ".join(
+                    (
+                        (
+                            f"\colorbox{{yellow!50}}{{{l}}} "
+                            if answer_key[y][x] != " "
+                            else l
+                        )
+                    )
+                    for x, l in enumerate(ls)
+                )
+                + " \\\\"
+            )
+            for y, ls in enumerate(grid)
+        )
         + r"""
-    \hline
-\end{tabular}
+    \end{TAB}
 \end{center}
 
 \end{document}
 """
     )
 
-def generate_grid(width: int, height: int, wordlist: list[str], target_fill_rate:float=0.4, give_up_rate:float=0.0001) -> tuple[list[list[str]], list[list[str]], list[str]]:
+
+def generate_grid(
+    width: int,
+    height: int,
+    wordlist: list[str],
+    target_fill_rate: float = 0.4,
+    give_up_rate: float = 0.0001,
+) -> tuple[list[list[str]], list[list[str]], list[str]]:
     grid = [[" " for _ in range(width)] for _ in range(height)]
     max_word_len = max(width, height)
 
     # Start with largest_words - easier to fit earlier
-    wordlist = list(sorted((w for w in wordlist if len(w) <= max_word_len), key=(lambda w: len(w)), reverse=True))
+    wordlist = list(
+        sorted(
+            (w for w in wordlist if len(w) <= max_word_len),
+            key=(lambda w: len(w)),
+            reverse=True,
+        )
+    )
 
     # Randomly select words
     mean_word_len = sum(len(w) for w in wordlist) / len(wordlist)
@@ -94,7 +148,9 @@ def generate_grid(width: int, height: int, wordlist: list[str], target_fill_rate
     if word_to_fit is None:
         word_to_fit = wordlist[0]
 
-    while successes <= 1 or (successes / attempts > give_up_rate and word_to_fit is not None):
+    while successes <= 1 or (
+        successes / attempts > give_up_rate and word_to_fit is not None
+    ):
         attempts += 1
 
         direction_x = random.choice([-1, 0, 1])
@@ -150,9 +206,13 @@ def generate_grid(width: int, height: int, wordlist: list[str], target_fill_rate
     for y in range(height):
         for x in range(width):
             if grid[y][x] == " ":
-                grid[y][x] = random.choices(list(k.upper() for k in letter_frequencies.keys()), letter_frequencies.values())[0]
+                grid[y][x] = random.choices(
+                    list(k.upper() for k in letter_frequencies.keys()),
+                    letter_frequencies.values(),
+                )[0]
 
     return grid, answer_key, successful_words
+
 
 def _arg_int_range(low: int, high: int) -> Callable[[int], int]:
     def _range(x):
@@ -169,10 +229,13 @@ if __name__ == "__main__":
     )
     parser.add_argument("--width", type=_arg_int_range(1, 21))
     parser.add_argument("--height", type=_arg_int_range(1, 31))
-    parser.add_argument('wordlist', type=argparse.FileType('rt'))
+    parser.add_argument("wordlist", type=argparse.FileType("rt"))
     args = parser.parse_args()
 
-    wordlist = [''.join(ch for ch in w.strip().upper() if ch.isalpha()) for w in args.wordlist.readlines()]
+    wordlist = [
+        "".join(ch for ch in w.strip().upper() if ch.isalpha())
+        for w in args.wordlist.readlines()
+    ]
     wordlist = [w for w in wordlist if w != ""]
 
     print(grid_to_tex(*generate_grid(args.width, args.height, wordlist)))
