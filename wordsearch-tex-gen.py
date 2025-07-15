@@ -49,10 +49,13 @@ def grid_to_tex(
 
 \renewcommand{\familydefault}{\sfdefault}
 
+\renewcommand{\arraystretch}{0}
+\setlength{\tabcolsep}{0pt}
+
 \newlength{\cellsize}
 \setlength{\cellsize}{0.75cm}
 
-\newcommand{\cellformat}[1]{\rule{0pt}{\cellsize}\parbox[c][\cellsize][c]{\cellsize}{\vspace{-1em}\centering#1}}
+\newcommand{\cellformat}[1]{\parbox[c][\cellsize][c]{\cellsize}{\centering#1}}
 
 \begin{document}
 
